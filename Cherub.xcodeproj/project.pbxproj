@@ -6,6 +6,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A10000000000000000000010 /* PatternAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000010 /* PatternAnalysis.swift */; };
 		A10000000000000000000001 /* CherubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* CherubApp.swift */; };
 		A10000000000000000000002 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* RootView.swift */; };
 		A10000000000000000000003 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* Theme.swift */; };
@@ -24,6 +25,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B10000000000000000000010 /* PatternAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternAnalysis.swift; sourceTree = "<group>"; };
 		B10000000000000000000000 /* Cherub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cherub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000000000000000000001 /* CherubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CherubApp.swift; sourceTree = "<group>"; };
 		B10000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 				B1000000000000000000000D,
 				B1000000000000000000000E,
 				B1000000000000000000000F,
+				B10000000000000000000010,
 			);
 			path = Cherub;
 			sourceTree = "<group>";
@@ -138,6 +141,7 @@
 				A1000000000000000000000C,
 				A1000000000000000000000D,
 				A1000000000000000000000E,
+				A10000000000000000000010,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

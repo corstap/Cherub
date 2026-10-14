@@ -1,7 +1,9 @@
 import SwiftUI
+import Combine
 
 struct RootView: View {
     @State private var selectedTab = 0
+    @EnvironmentObject private var store: CherubStore
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -26,5 +28,8 @@ struct RootView: View {
                 .tag(4)
         }
         .tint(.cherubBurgundy)
+        .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { now in
+            store.refreshPatternClock(now: now)
+        }
     }
 }

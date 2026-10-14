@@ -20,11 +20,23 @@ extension Color {
     static let cherubPeriwinkle = Color(cherubHex: 0x8096E8)
     static let cherubAmber = Color(cherubHex: 0xF4A744)
     static let cherubViolet = Color(cherubHex: 0x7B60AB)
+    static let cherubLibido = Color(cherubHex: 0xB9748A)
     static let cherubRose = cherubLavender
     static let cherubBlush = cherubLavender
     static let cherubSage = cherubPeriwinkle
     static let cherubGold = cherubOlive
     static let cherubLine = Color.black.opacity(0.11)
+}
+
+extension CyclePhase {
+    var color: Color {
+        switch self {
+        case .menstrual: return .cherubBurgundy
+        case .follicular: return .cherubSage
+        case .ovulatory: return .cherubGold
+        case .luteal: return .cherubBlush
+        }
+    }
 }
 
 struct CherubCardModifier: ViewModifier {

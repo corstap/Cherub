@@ -5,24 +5,35 @@ final class CherubStore: ObservableObject {
     @Published var selectedDate = Date()
     @Published var profile: CycleProfile { didSet { saveProfile() } }
     @Published var logs: [String: DailyLog] { didSet { saveLogs() } }
+    @Published private(set) var watchedPatterns: [PatternWatch] { didSet { saveWatches() } }
+    @Published private(set) var patternNow = Date()
     @Published private var draftLogs: [String: DailyLog] = [:]
 
     private let profileKey = "cherub.cycleProfile"
     private let logsKey = "cherub.dailyLogs"
+    private let watchesKey = "cherub.patternWatches"
+    private let defaults: UserDefaults
 
-    init() {
-        if let data = UserDefaults.standard.data(forKey: profileKey),
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey: profileKey),
            let decoded = try? JSONDecoder().decode(CycleProfile.self, from: data) {
             profile = decoded
         } else {
             profile = .defaultProfile
         }
 
-        if let data = UserDefaults.standard.data(forKey: logsKey),
+        if let data = defaults.data(forKey: logsKey),
            let decoded = try? JSONDecoder().decode([String: DailyLog].self, from: data) {
             logs = decoded
         } else {
             logs = [:]
+        }
+        if let data = defaults.data(forKey: watchesKey),
+           let decoded = try? JSONDecoder().decode([PatternWatch].self, from: data) {
+            watchedPatterns = decoded
+        } else {
+            watchedPatterns = []
         }
     }
 
@@ -48,20 +59,11 @@ final class CherubStore: ObservableObject {
     }
 
     func cycleDay(on date: Date? = nil) -> Int {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: profile.lastPeriodStart)
-        let target = calendar.startOfDay(for: date ?? selectedDate)
-        let days = calendar.dateComponents([.day], from: start, to: target).day ?? 0
-        let normalized = ((days % profile.averageCycleLength) + profile.averageCycleLength) % profile.averageCycleLength
-        return normalized + 1
+        profile.cycleDay(on: date ?? selectedDate)
     }
 
     func phase(on date: Date? = nil) -> CyclePhase {
-        let day = cycleDay(on: date)
-        if day <= profile.averagePeriodLength { return .menstrual }
-        if day <= max(profile.averagePeriodLength + 8, 13) { return .follicular }
-        if day <= min(17, profile.averageCycleLength - 10) { return .ovulatory }
-        return .luteal
+        profile.phase(on: date ?? selectedDate)
     }
 
     func nextPeriodDate(from date: Date? = nil) -> Date {
@@ -77,55 +79,77 @@ final class CherubStore: ObservableObject {
     }
 
     func save(_ log: DailyLog) {
-        logs[DailyLog.key(for: log.date)] = log
+        var captured = log
+        let previous = logs[log.id]
+        captured.cyclePhaseAtLog = log.cyclePhaseAtLog ?? previous?.cyclePhaseAtLog ?? profile.phase(on: log.date)
+        captured.cycleStartAtLog = log.cycleStartAtLog ?? previous?.cycleStartAtLog ?? profile.cycleStart(on: log.date)
+        captured.moonPhaseAtLog = log.moonPhaseAtLog ?? previous?.moonPhaseAtLog ?? LunarPhase(on: log.date)
+        logs[log.id] = captured
         draftLogs.removeValue(forKey: log.id)
     }
 
-    func insights(through date: Date? = nil) -> [PatternInsight] {
-        let lastDay = Calendar.current.startOfDay(for: date ?? selectedDate)
-        let completed = logs.values.filter {
-            Calendar.current.startOfDay(for: $0.date) <= lastDay &&
-            ($0.energy > 0 || $0.mood > 0 || $0.sleep > 0 || $0.creativity > 0 || $0.stress > 0 || $0.symptoms > 0 || $0.flow != nil)
-        }
-        guard completed.count >= 5 else {
-            return [PatternInsight(icon: "sparkles", title: "Cherub is still learning", detail: "Log a few more days and your own cycle and moon patterns will start appearing here.")]
-        }
-
-        var output: [PatternInsight] = []
-        let luteal = completed.filter { phase(on: $0.date) == .luteal && $0.energy > 0 }
-        let ovulatory = completed.filter { phase(on: $0.date) == .ovulatory && $0.mood > 0 }
-        let waning = completed.filter { MoonCalculator.snapshot(for: $0.date).fraction > 0.5 && $0.sleep > 0 }
-        let waxing = completed.filter { MoonCalculator.snapshot(for: $0.date).fraction <= 0.5 && $0.creativity > 0 }
-
-        if let avg = average(luteal.map(\.energy)) {
-            output.append(PatternInsight(icon: "moon.haze", title: "Luteal energy", detail: "Your average logged energy in the luteal phase is \(String(format: "%.1f", avg))/5."))
-        }
-        if let avg = average(ovulatory.map(\.mood)) {
-            output.append(PatternInsight(icon: "heart", title: "Ovulatory mood", detail: "Your average mood during ovulation is \(String(format: "%.1f", avg))/5."))
-        }
-        if let avg = average(waning.map(\.sleep)) {
-            output.append(PatternInsight(icon: "moon.zzz", title: "Sleep while the moon wanes", detail: "You average \(String(format: "%.1f", avg))/5 for sleep during waning phases."))
-        }
-        if let avg = average(waxing.map(\.creativity)) {
-            output.append(PatternInsight(icon: "sparkles", title: "Creativity while the moon waxes", detail: "Your creativity averages \(String(format: "%.1f", avg))/5 during waxing phases."))
-        }
-
-        return output.isEmpty ? [PatternInsight(icon: "sparkles", title: "More data, better patterns", detail: "Keep logging so Cherub can compare your cycle phases with the lunar cycle.")] : output
+    func patternAnalyzer(through date: Date? = nil) -> PatternAnalyzer {
+        PatternAnalyzer(logs: Array(logs.values), profile: profile, through: date ?? selectedDate, now: patternNow)
     }
 
-    private func average(_ values: [Int]) -> Double? {
-        let nonzero = values.filter { $0 > 0 }
-        guard !nonzero.isEmpty else { return nil }
-        return Double(nonzero.reduce(0, +)) / Double(nonzero.count)
+    func insights(through date: Date? = nil) -> [PatternInsight] {
+        let analyzer = patternAnalyzer(through: date)
+        let comparisons = PatternMetric.allCases.flatMap { analyzer.interesting(metric: $0) }
+            .sorted {
+                if $0.strength.rawValue != $1.strength.rawValue { return $0.strength.rawValue > $1.strength.rawValue }
+                if $0.target.cycleCount != $1.target.cycleCount { return $0.target.cycleCount > $1.target.cycleCount }
+                return $0.id < $1.id
+            }
+        if comparisons.isEmpty {
+            return [PatternInsight(
+                icon: "chart.bar", title: "Learning your patterns",
+                detail: "Not enough evidence for a clear cycle × moon difference yet. Keep logging across several cycles; each metric is compared within the same menstrual phase."
+            )]
+        }
+        return comparisons.prefix(3).map {
+            PatternInsight(icon: "chart.bar", title: "\($0.strength.title) · \($0.metric.title)", detail: $0.shortExplanation)
+        }
+    }
+
+    func refreshPatternClock(now: Date = Date()) {
+        if !Calendar.current.isDate(patternNow, equalTo: now, toGranularity: .minute) { patternNow = now }
+    }
+
+    func isWatching(_ comparison: PatternComparison) -> Bool {
+        watchedPatterns.contains { $0.id == comparison.id }
+    }
+
+    func toggleWatch(_ comparison: PatternComparison) {
+        if isWatching(comparison) {
+            watchedPatterns.removeAll { $0.id == comparison.id }
+        } else {
+            watchedPatterns.append(PatternWatch.create(
+                cycle: comparison.cycle, moon: comparison.moon, metric: comparison.metric,
+                profile: profile, now: patternNow
+            ))
+        }
+    }
+
+    func removeWatch(_ id: String) {
+        watchedPatterns.removeAll { $0.id == id }
+    }
+
+    func activePatternWatches() -> [PatternWatch] {
+        watchedPatterns.filter { $0.isDue(on: patternNow, profile: profile, log: log(for: patternNow)) }
+    }
+
+    private func saveWatches() {
+        guard let data = try? JSONEncoder().encode(watchedPatterns) else { return }
+        defaults.set(data, forKey: watchesKey)
     }
 
     private func saveProfile() {
         guard let data = try? JSONEncoder().encode(profile) else { return }
-        UserDefaults.standard.set(data, forKey: profileKey)
+        defaults.set(data, forKey: profileKey)
     }
 
     private func saveLogs() {
         guard let data = try? JSONEncoder().encode(logs) else { return }
-        UserDefaults.standard.set(data, forKey: logsKey)
+        defaults.set(data, forKey: logsKey)
     }
 }

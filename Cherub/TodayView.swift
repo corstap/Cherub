@@ -16,6 +16,25 @@ struct TodayView: View {
                     lunarHeader
                     illustratedCycle
                     phaseLegend
+                    if store.isShowingToday {
+                        ForEach(store.activePatternWatches()) { watch in
+                            NavigationLink {
+                                LogView()
+                            } label: {
+                                HStack(alignment: .top, spacing: 10) {
+                                    Image(systemName: "bell").foregroundStyle(Color.cherubBurgundy)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Watch This Pattern").font(.headline)
+                                        Text("\(watch.title) is here today. Log \(watch.metric.title.lowercased()) to test the pattern again.")
+                                            .font(.subheadline)
+                                    }
+                                    .foregroundStyle(Color.cherubInk)
+                                }
+                                .cherubCard()
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                     insightCard
                     quickLog
                 }
@@ -179,7 +198,7 @@ struct TodayView: View {
 
     private var quickLog: some View {
         let log = store.log()
-        let hasLog = log.energy + log.mood + log.sleep + log.creativity + log.stress + log.symptoms > 0 || log.flow != nil || !log.notes.isEmpty
+        let hasLog = log.energy + log.mood + log.sleep + log.creativity + log.stress + log.symptoms + log.libidoRating > 0 || log.flow != nil || !log.notes.isEmpty
         let editTitle = store.isShowingToday ? "Edit today’s log" : "Edit this day’s log"
         return VStack(alignment: .leading, spacing: 8) {
             Text(store.isShowingToday ? "Log today" : "Log this day")
@@ -196,6 +215,13 @@ struct TodayView: View {
                 Text("Flow")
                 Spacer()
                 Text(log.flow?.title ?? "Not logged")
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
+            HStack {
+                Text("Libido")
+                Spacer()
+                Text(log.libidoRating > 0 ? "\(log.libidoRating)/5" : "Not logged")
             }
             .font(.system(size: 12))
             .foregroundStyle(.secondary)

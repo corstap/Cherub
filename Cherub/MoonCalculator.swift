@@ -2,6 +2,7 @@ import Foundation
 
 enum MoonCalculator {
     static let synodicMonth = 29.53058867
+    static let referenceNewMoon = Date(timeIntervalSince1970: 947182440)
 
     static func snapshot(for date: Date = Date()) -> MoonSnapshot {
         let fraction = phaseFraction(for: date)
@@ -24,16 +25,7 @@ enum MoonCalculator {
     }
 
     static func phaseFraction(for date: Date) -> Double {
-        var components = DateComponents()
-        components.calendar = Calendar(identifier: .gregorian)
-        components.timeZone = TimeZone(secondsFromGMT: 0)
-        components.year = 2000
-        components.month = 1
-        components.day = 6
-        components.hour = 18
-        components.minute = 14
-        let knownNewMoon = components.date ?? Date(timeIntervalSince1970: 947182440)
-        let days = date.timeIntervalSince(knownNewMoon) / 86_400
+        let days = date.timeIntervalSince(referenceNewMoon) / 86_400
         let cycles = days / synodicMonth
         return cycles - floor(cycles)
     }
