@@ -4,13 +4,14 @@ struct TodayView: View {
     @EnvironmentObject private var store: CherubStore
     @State private var showMoonInfo = false
 
-    private var moon: MoonSnapshot { MoonCalculator.snapshot() }
+    private var moon: MoonSnapshot { store.selectedMoon }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    CherubHeader(subtitle: Date().formatted(date: .complete, time: .omitted), showSettings: true)
+                    CherubHeader(subtitle: store.selectedDate.formatted(date: .complete, time: .omitted), showSettings: true)
+                    SharedDateNavigator()
 
                     VStack(spacing: 14) {
                         HStack(spacing: 18) {
@@ -68,7 +69,7 @@ struct TodayView: View {
                 .foregroundStyle(Color.cherubGold)
                 .frame(width: 34)
             VStack(alignment: .leading, spacing: 5) {
-                Text("Today’s Insight")
+                Text(store.isShowingToday ? "Today’s Insight" : "Daily Insight")
                     .font(.system(size: 21, weight: .bold, design: .serif))
                     .foregroundStyle(Color.cherubBurgundy)
                 Text("You’re in your \(store.phase().rawValue.lowercased()) phase while the moon is \(moon.phaseName.lowercased()). Log how you feel today and Cherub will look for your own patterns over time.")
@@ -81,8 +82,10 @@ struct TodayView: View {
 
     private var quickLog: some View {
         let log = store.log()
+        let hasLog = log.energy + log.mood + log.sleep + log.creativity + log.stress + log.symptoms > 0 || log.flow != nil || !log.notes.isEmpty
+        let editTitle = store.isShowingToday ? "Edit today’s log" : "Edit this day’s log"
         return VStack(alignment: .leading, spacing: 14) {
-            SectionTitle(text: "Today’s Log")
+            SectionTitle(text: store.isShowingToday ? "Today’s Log" : "Daily Log")
             HStack(spacing: 6) {
                 MetricTile(title: "Energy", icon: "sun.max", value: log.energy, tint: .cherubGold)
                 MetricTile(title: "Mood", icon: "face.smiling", value: log.mood, tint: .cherubRose)
@@ -99,7 +102,7 @@ struct TodayView: View {
             NavigationLink {
                 LogView()
             } label: {
-                Text(log.id == DailyLog.key(for: Date()) && (log.energy + log.mood + log.sleep + log.symptoms > 0 || log.flow != nil) ? "Edit today’s log" : "Log how you feel")
+                Text(hasLog ? editTitle : "Log how you feel")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.cherubBurgundy)
             }

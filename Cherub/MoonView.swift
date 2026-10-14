@@ -1,14 +1,17 @@
 import SwiftUI
 
 struct MoonView: View {
-    private var moon: MoonSnapshot { MoonCalculator.snapshot() }
-    private var upcoming: [(String, Date)] { MoonCalculator.upcomingMajorPhases() }
+    @EnvironmentObject private var store: CherubStore
+
+    private var moon: MoonSnapshot { store.selectedMoon }
+    private var upcoming: [(String, Date)] { MoonCalculator.upcomingMajorPhases(from: store.selectedDate) }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 22) {
                     CherubHeader(subtitle: "The Moon")
+                    SharedDateNavigator()
 
                     VStack(spacing: 10) {
                         MoonGlyph(snapshot: moon, size: 140)
@@ -39,14 +42,22 @@ struct MoonView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         SectionTitle(text: "Upcoming Phases")
                         ForEach(Array(upcoming.enumerated()), id: \.offset) { _, phase in
-                            HStack {
-                                Image(systemName: phase.0.contains("Full") ? "moon.circle.fill" : "moon.circle")
-                                    .foregroundStyle(Color.cherubBurgundy)
-                                Text(phase.0)
-                                Spacer()
-                                Text(phase.1.formatted(date: .abbreviated, time: .omitted))
-                                    .foregroundStyle(.secondary)
+                            Button {
+                                store.selectedDate = phase.1
+                            } label: {
+                                HStack {
+                                    Image(systemName: phase.0.contains("Full") ? "moon.circle.fill" : "moon.circle")
+                                        .foregroundStyle(Color.cherubBurgundy)
+                                    Text(phase.0)
+                                    Spacer()
+                                    Text(phase.1.formatted(date: .abbreviated, time: .omitted))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(minHeight: 44)
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("View this date across Cherub")
                             if phase.0 != upcoming.last?.0 { Divider() }
                         }
                     }

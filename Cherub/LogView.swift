@@ -2,9 +2,10 @@ import SwiftUI
 
 struct LogView: View {
     @EnvironmentObject private var store: CherubStore
-    @State private var selectedDate = Date()
-    @State private var draft = DailyLog.empty()
     @State private var savedMessage = false
+    @State private var saveFeedbackID = UUID()
+
+    private var draft: DailyLog { store.selectedLogDraft }
 
     var body: some View {
         NavigationStack {
@@ -12,18 +13,15 @@ struct LogView: View {
                 VStack(spacing: 20) {
                     CherubHeader(subtitle: "Daily Log")
 
-                    DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .tint(.cherubBurgundy)
-                        .cherubCard()
+                    SharedDateNavigator()
 
                     VStack(alignment: .leading, spacing: 20) {
                         SectionTitle(text: "How are you feeling?")
-                        ratingRow("Energy", icon: "sun.max", value: $draft.energy, tint: .cherubGold)
-                        ratingRow("Mood", icon: "face.smiling", value: $draft.mood, tint: .cherubRose)
-                        ratingRow("Sleep", icon: "moon.zzz", value: $draft.sleep, tint: .cherubSage)
-                        ratingRow("Creativity", icon: "sparkles", value: $draft.creativity, tint: .cherubBurgundy)
-                        ratingRow("Stress", icon: "bolt", value: $draft.stress, tint: .cherubRose)
+                        ratingRow("Energy", icon: "sun.max", value: $store.selectedLogDraft.energy, tint: .cherubGold)
+                        ratingRow("Mood", icon: "face.smiling", value: $store.selectedLogDraft.mood, tint: .cherubRose)
+                        ratingRow("Sleep", icon: "moon.zzz", value: $store.selectedLogDraft.sleep, tint: .cherubSage)
+                        ratingRow("Creativity", icon: "sparkles", value: $store.selectedLogDraft.creativity, tint: .cherubBurgundy)
+                        ratingRow("Stress", icon: "bolt", value: $store.selectedLogDraft.stress, tint: .cherubRose)
                     }
                     .cherubCard()
 
@@ -34,7 +32,7 @@ struct LogView: View {
                         HStack(spacing: 8) {
                             ForEach(MenstrualFlow.allCases) { flow in
                                 Button {
-                                    draft.flow = flow
+                                    store.selectedLogDraft.flow = flow
                                 } label: {
                                     Text(flow.title)
                                         .font(.subheadline.weight(.medium))
@@ -48,13 +46,13 @@ struct LogView: View {
                                 .accessibilityValue(draft.flow == flow ? "Selected" : "Not selected")
                             }
                         }
-                        ratingRow("Aches & Cramps", icon: "heart", value: $draft.symptoms, tint: .cherubBurgundy)
+                        ratingRow("Aches & Cramps", icon: "heart", value: $store.selectedLogDraft.symptoms, tint: .cherubBurgundy)
                     }
                     .cherubCard()
 
                     VStack(alignment: .leading, spacing: 10) {
                         SectionTitle(text: "Notes")
-                        TextEditor(text: $draft.notes)
+                        TextEditor(text: $store.selectedLogDraft.notes)
                             .frame(minHeight: 120)
                             .scrollContentBackground(.hidden)
                             .padding(10)
@@ -64,12 +62,15 @@ struct LogView: View {
                     .cherubCard()
 
                     Button {
-                        draft.date = selectedDate
                         store.save(draft)
                         savedMessage = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { savedMessage = false }
+                        let feedbackID = UUID()
+                        saveFeedbackID = feedbackID
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                            if saveFeedbackID == feedbackID { savedMessage = false }
+                        }
                     } label: {
-                        Text(savedMessage ? "Saved" : "Save today’s log")
+                        Text(savedMessage ? "Saved" : "Save log")
                             .font(.headline)
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -83,9 +84,9 @@ struct LogView: View {
             }
             .background(Color.cherubBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
-            .onAppear { draft = store.log(for: selectedDate) }
-            .onChange(of: selectedDate) { _, newDate in
-                draft = store.log(for: newDate)
+            .onChange(of: store.selectedDate) { _, _ in
+                savedMessage = false
+                saveFeedbackID = UUID()
             }
         }
     }

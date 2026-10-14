@@ -35,6 +35,44 @@ struct CherubHeader: View {
     }
 }
 
+struct SharedDateNavigator: View {
+    @EnvironmentObject private var store: CherubStore
+
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 8) {
+                Button { store.moveSelectedDate(by: -1) } label: {
+                    Image(systemName: "chevron.left")
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Previous day")
+
+                Spacer(minLength: 0)
+                DatePicker("Selected date", selection: $store.selectedDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .datePickerStyle(.compact)
+                Spacer(minLength: 0)
+
+                Button { store.moveSelectedDate(by: 1) } label: {
+                    Image(systemName: "chevron.right")
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Next day")
+            }
+
+            if !store.isShowingToday {
+                Button("Back to Today") { store.returnToToday() }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.vertical, 6)
+            }
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.cherubBurgundy)
+        .tint(.cherubBurgundy)
+        .cherubCard()
+    }
+}
+
 struct SectionTitle: View {
     let text: String
     var body: some View {

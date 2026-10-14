@@ -8,10 +8,11 @@ struct PatternsView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     CherubHeader(subtitle: "Your Patterns")
+                    SharedDateNavigator()
 
                     VStack(alignment: .leading, spacing: 8) {
                         SectionTitle(text: "Key Insights")
-                        Text("These are calculated from the entries stored on this iPhone.")
+                        Text("Based on your saved entries through \(store.selectedDate.formatted(date: .abbreviated, time: .omitted)).")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

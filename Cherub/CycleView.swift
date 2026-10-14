@@ -8,6 +8,7 @@ struct CycleView: View {
             ScrollView {
                 VStack(spacing: 22) {
                     CherubHeader(subtitle: "Your Cycle")
+                    SharedDateNavigator()
                     CycleWheelView(size: 260)
 
                     VStack(alignment: .leading, spacing: 14) {

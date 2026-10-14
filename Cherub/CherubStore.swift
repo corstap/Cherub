@@ -2,8 +2,10 @@ import Foundation
 import Combine
 
 final class CherubStore: ObservableObject {
+    @Published var selectedDate = Date()
     @Published var profile: CycleProfile { didSet { saveProfile() } }
     @Published var logs: [String: DailyLog] { didSet { saveLogs() } }
+    @Published private var draftLogs: [String: DailyLog] = [:]
 
     private let profileKey = "cherub.cycleProfile"
     private let logsKey = "cherub.dailyLogs"
@@ -24,16 +26,37 @@ final class CherubStore: ObservableObject {
         }
     }
 
-    func cycleDay(on date: Date = Date()) -> Int {
+    var isShowingToday: Bool {
+        Calendar.current.isDateInToday(selectedDate)
+    }
+
+    var selectedMoon: MoonSnapshot {
+        MoonCalculator.snapshot(for: selectedDate)
+    }
+
+    var selectedLogDraft: DailyLog {
+        get { draftLogs[DailyLog.key(for: selectedDate)] ?? log() }
+        set { draftLogs[newValue.id] = newValue }
+    }
+
+    func moveSelectedDate(by days: Int) {
+        selectedDate = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
+    }
+
+    func returnToToday() {
+        selectedDate = Date()
+    }
+
+    func cycleDay(on date: Date? = nil) -> Int {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: profile.lastPeriodStart)
-        let target = calendar.startOfDay(for: date)
+        let target = calendar.startOfDay(for: date ?? selectedDate)
         let days = calendar.dateComponents([.day], from: start, to: target).day ?? 0
         let normalized = ((days % profile.averageCycleLength) + profile.averageCycleLength) % profile.averageCycleLength
         return normalized + 1
     }
 
-    func phase(on date: Date = Date()) -> CyclePhase {
+    func phase(on date: Date? = nil) -> CyclePhase {
         let day = cycleDay(on: date)
         if day <= profile.averagePeriodLength { return .menstrual }
         if day <= max(profile.averagePeriodLength + 8, 13) { return .follicular }
@@ -41,22 +64,29 @@ final class CherubStore: ObservableObject {
         return .luteal
     }
 
-    func nextPeriodDate(from date: Date = Date()) -> Date {
-        let day = cycleDay(on: date)
+    func nextPeriodDate(from date: Date? = nil) -> Date {
+        let referenceDate = date ?? selectedDate
+        let day = cycleDay(on: referenceDate)
         let daysRemaining = max(profile.averageCycleLength - day + 1, 1)
-        return Calendar.current.date(byAdding: .day, value: daysRemaining, to: date) ?? date
+        return Calendar.current.date(byAdding: .day, value: daysRemaining, to: referenceDate) ?? referenceDate
     }
 
-    func log(for date: Date = Date()) -> DailyLog {
-        logs[DailyLog.key(for: date)] ?? .empty(for: date)
+    func log(for date: Date? = nil) -> DailyLog {
+        let referenceDate = date ?? selectedDate
+        return logs[DailyLog.key(for: referenceDate)] ?? .empty(for: referenceDate)
     }
 
     func save(_ log: DailyLog) {
         logs[DailyLog.key(for: log.date)] = log
+        draftLogs.removeValue(forKey: log.id)
     }
 
-    func insights() -> [PatternInsight] {
-        let completed = logs.values.filter { $0.energy > 0 || $0.mood > 0 || $0.sleep > 0 || $0.creativity > 0 || $0.stress > 0 || $0.symptoms > 0 || $0.flow != nil }
+    func insights(through date: Date? = nil) -> [PatternInsight] {
+        let lastDay = Calendar.current.startOfDay(for: date ?? selectedDate)
+        let completed = logs.values.filter {
+            Calendar.current.startOfDay(for: $0.date) <= lastDay &&
+            ($0.energy > 0 || $0.mood > 0 || $0.sleep > 0 || $0.creativity > 0 || $0.stress > 0 || $0.symptoms > 0 || $0.flow != nil)
+        }
         guard completed.count >= 5 else {
             return [PatternInsight(icon: "sparkles", title: "Cherub is still learning", detail: "Log a few more days and your own cycle and moon patterns will start appearing here.")]
         }
