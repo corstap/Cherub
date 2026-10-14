@@ -186,11 +186,11 @@ struct TodayView: View {
                 .font(.custom("Baskerville", size: 19, relativeTo: .headline))
                 .foregroundStyle(Color.cherubInk)
             HStack(spacing: 6) {
-                quickMetric("Energy", icon: "sun.max", value: log.energy)
-                quickMetric("Mood", icon: "face.smiling", value: log.mood)
-                quickMetric("Sleep", icon: "moon", value: log.sleep)
-                quickMetric("Creativity", icon: "sparkles", value: log.creativity)
-                quickMetric("Aches &\nCramps", icon: "heart", value: log.symptoms)
+                quickMetric("Energy", icon: "sun.max", value: log.energy, tint: .cherubOlive)
+                quickMetric("Mood", icon: "face.smiling", value: log.mood, tint: .cherubLavender)
+                quickMetric("Sleep", icon: "moon", value: log.sleep, tint: .cherubPeriwinkle)
+                quickMetric("Creativity", icon: "sparkles", value: log.creativity, tint: .cherubOlive)
+                quickMetric("Aches &\nCramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
             }
             HStack {
                 Text("Flow")
@@ -209,11 +209,11 @@ struct TodayView: View {
         }
     }
 
-    private func quickMetric(_ title: String, icon: String, value: Int) -> some View {
+    private func quickMetric(_ title: String, icon: String, value: Int, tint: Color) -> some View {
         NavigationLink {
             LogView()
         } label: {
-            MetricTile(title: title, icon: icon, value: value, tint: .cherubGold)
+            MetricTile(title: title, icon: icon, value: value, tint: tint)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Log \(title.replacingOccurrences(of: "\n", with: " "))")

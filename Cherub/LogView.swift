@@ -19,7 +19,7 @@ struct LogView: View {
                         SectionTitle(text: "How are you feeling?")
                         ratingRow("Energy", icon: "sun.max", value: $store.selectedLogDraft.energy, tint: .cherubGold)
                         ratingRow("Mood", icon: "face.smiling", value: $store.selectedLogDraft.mood, tint: .cherubRose)
-                        ratingRow("Sleep", icon: "moon.zzz", value: $store.selectedLogDraft.sleep, tint: .cherubSage)
+                        ratingRow("Sleep", icon: "moon.zzz", value: $store.selectedLogDraft.sleep, tint: .cherubPeriwinkle)
                         ratingRow("Creativity", icon: "sparkles", value: $store.selectedLogDraft.creativity, tint: .cherubBurgundy)
                         ratingRow("Stress", icon: "bolt", value: $store.selectedLogDraft.stress, tint: .cherubRose)
                     }

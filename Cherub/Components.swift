@@ -10,7 +10,8 @@ struct CherubHeader: View {
             VStack(spacing: 2) {
                 Text("Cherub")
                     .font(.custom("Baskerville", size: 36, relativeTo: .largeTitle))
-                    .foregroundStyle(Color.cherubInk)
+                    .bold()
+                    .foregroundStyle(Color.cherubBurgundy)
                 if let subtitle {
                     Text(subtitle)
                         .font(.system(size: 13))
@@ -193,7 +194,7 @@ struct RatingDots: View {
                     Circle()
                         .fill(number <= value ? tint : Color.black.opacity(0.09))
                         .frame(width: 19, height: 19)
-                        .overlay(Circle().stroke(Color.black.opacity(0.08), lineWidth: 1))
+                        .overlay(Circle().stroke(number <= value ? Color.cherubBurgundy.opacity(0.4) : Color.black.opacity(0.08), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(number) out of 5")
