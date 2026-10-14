@@ -24,7 +24,31 @@ struct LogView: View {
                         ratingRow("Sleep", icon: "moon.zzz", value: $draft.sleep, tint: .cherubSage)
                         ratingRow("Creativity", icon: "sparkles", value: $draft.creativity, tint: .cherubBurgundy)
                         ratingRow("Stress", icon: "bolt", value: $draft.stress, tint: .cherubRose)
-                        ratingRow("Symptoms", icon: "heart", value: $draft.symptoms, tint: .cherubBurgundy)
+                    }
+                    .cherubCard()
+
+                    VStack(alignment: .leading, spacing: 18) {
+                        SectionTitle(text: "Physical")
+                        Text("Flow")
+                            .font(.subheadline.weight(.semibold))
+                        HStack(spacing: 8) {
+                            ForEach(MenstrualFlow.allCases) { flow in
+                                Button {
+                                    draft.flow = flow
+                                } label: {
+                                    Text(flow.title)
+                                        .font(.subheadline.weight(.medium))
+                                        .frame(maxWidth: .infinity, minHeight: 44)
+                                        .foregroundStyle(draft.flow == flow ? Color.white : Color.cherubInk)
+                                        .background(draft.flow == flow ? Color.cherubBurgundy : Color.black.opacity(0.04))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Flow: \(flow.title)")
+                                .accessibilityValue(draft.flow == flow ? "Selected" : "Not selected")
+                            }
+                        }
+                        ratingRow("Aches & cramps", icon: "heart", value: $draft.symptoms, tint: .cherubBurgundy)
                     }
                     .cherubCard()
 

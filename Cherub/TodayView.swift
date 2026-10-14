@@ -87,12 +87,19 @@ struct TodayView: View {
                 MetricTile(title: "Energy", icon: "sun.max", value: log.energy, tint: .cherubGold)
                 MetricTile(title: "Mood", icon: "face.smiling", value: log.mood, tint: .cherubRose)
                 MetricTile(title: "Sleep", icon: "moon.zzz", value: log.sleep, tint: .cherubSage)
-                MetricTile(title: "Symptoms", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
+                MetricTile(title: "Aches & cramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
             }
+            HStack {
+                Text("Flow")
+                Spacer()
+                Text(log.flow?.title ?? "Not logged")
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
             NavigationLink {
                 LogView()
             } label: {
-                Text(log.id == DailyLog.key(for: Date()) && (log.energy + log.mood + log.sleep + log.symptoms > 0) ? "Edit today’s log" : "Log how you feel")
+                Text(log.id == DailyLog.key(for: Date()) && (log.energy + log.mood + log.sleep + log.symptoms > 0 || log.flow != nil) ? "Edit today’s log" : "Log how you feel")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.cherubBurgundy)
             }

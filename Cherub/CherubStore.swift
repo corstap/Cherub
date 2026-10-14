@@ -55,7 +55,7 @@ final class CherubStore: ObservableObject {
     }
 
     func insights() -> [PatternInsight] {
-        let completed = logs.values.filter { $0.energy > 0 || $0.mood > 0 || $0.sleep > 0 || $0.creativity > 0 || $0.stress > 0 || $0.symptoms > 0 }
+        let completed = logs.values.filter { $0.energy > 0 || $0.mood > 0 || $0.sleep > 0 || $0.creativity > 0 || $0.stress > 0 || $0.symptoms > 0 || $0.flow != nil }
         guard completed.count >= 5 else {
             return [PatternInsight(icon: "sparkles", title: "Cherub is still learning", detail: "Log a few more days and your own cycle and moon patterns will start appearing here.")]
         }

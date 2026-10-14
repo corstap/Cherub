@@ -62,6 +62,16 @@ struct CycleProfile: Codable {
     }
 }
 
+enum MenstrualFlow: String, CaseIterable, Codable, Identifiable {
+    case none
+    case light
+    case medium
+    case heavy
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+}
+
 struct DailyLog: Codable, Identifiable, Equatable {
     var id: String { Self.key(for: date) }
     var date: Date
@@ -72,6 +82,8 @@ struct DailyLog: Codable, Identifiable, Equatable {
     var stress: Int
     var symptoms: Int
     var notes: String
+    // Missing in older saved logs; nil is distinct from explicitly choosing None.
+    var flow: MenstrualFlow? = nil
 
     static func empty(for date: Date = Date()) -> DailyLog {
         DailyLog(date: date, energy: 0, mood: 0, sleep: 0, creativity: 0, stress: 0, symptoms: 0, notes: "")
