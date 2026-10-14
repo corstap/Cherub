@@ -192,9 +192,9 @@ struct RatingDots: View {
                     value = (value == number ? 0 : number)
                 } label: {
                     Circle()
-                        .fill(number <= value ? tint : Color.black.opacity(0.09))
+                        .fill(number <= value ? tint : tint.opacity(0.16))
                         .frame(width: 19, height: 19)
-                        .overlay(Circle().stroke(number <= value ? Color.cherubBurgundy.opacity(0.4) : Color.black.opacity(0.08), lineWidth: 1))
+                        .overlay(Circle().stroke(number <= value ? Color.cherubBurgundy.opacity(0.4) : tint.opacity(0.4), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(number) out of 5")

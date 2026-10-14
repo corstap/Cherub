@@ -186,10 +186,10 @@ struct TodayView: View {
                 .font(.custom("Baskerville", size: 19, relativeTo: .headline))
                 .foregroundStyle(Color.cherubInk)
             HStack(spacing: 6) {
-                quickMetric("Energy", icon: "sun.max", value: log.energy, tint: .cherubOlive)
+                quickMetric("Energy", icon: "sun.max", value: log.energy, tint: .cherubAmber)
                 quickMetric("Mood", icon: "face.smiling", value: log.mood, tint: .cherubLavender)
                 quickMetric("Sleep", icon: "moon", value: log.sleep, tint: .cherubPeriwinkle)
-                quickMetric("Creativity", icon: "sparkles", value: log.creativity, tint: .cherubOlive)
+                quickMetric("Creativity", icon: "sparkles", value: log.creativity, tint: .cherubViolet)
                 quickMetric("Aches &\nCramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
             }
             HStack {

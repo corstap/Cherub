@@ -17,11 +17,11 @@ struct LogView: View {
 
                     VStack(alignment: .leading, spacing: 20) {
                         SectionTitle(text: "How are you feeling?")
-                        ratingRow("Energy", icon: "sun.max", value: $store.selectedLogDraft.energy, tint: .cherubGold)
-                        ratingRow("Mood", icon: "face.smiling", value: $store.selectedLogDraft.mood, tint: .cherubRose)
+                        ratingRow("Energy", icon: "sun.max", value: $store.selectedLogDraft.energy, tint: .cherubAmber)
+                        ratingRow("Mood", icon: "face.smiling", value: $store.selectedLogDraft.mood, tint: .cherubLavender)
                         ratingRow("Sleep", icon: "moon.zzz", value: $store.selectedLogDraft.sleep, tint: .cherubPeriwinkle)
-                        ratingRow("Creativity", icon: "sparkles", value: $store.selectedLogDraft.creativity, tint: .cherubBurgundy)
-                        ratingRow("Stress", icon: "bolt", value: $store.selectedLogDraft.stress, tint: .cherubRose)
+                        ratingRow("Creativity", icon: "sparkles", value: $store.selectedLogDraft.creativity, tint: .cherubViolet)
+                        ratingRow("Stress", icon: "bolt", value: $store.selectedLogDraft.stress, tint: .cherubOlive)
                     }
                     .cherubCard()
 
@@ -93,7 +93,11 @@ struct LogView: View {
 
     private func ratingRow(_ title: String, icon: String, value: Binding<Int>, tint: Color) -> some View {
         HStack {
-            Label(title, systemImage: icon)
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: icon).foregroundStyle(tint)
+            }
                 .font(.subheadline.weight(.semibold))
                 .frame(width: 110, alignment: .leading)
             Spacer()

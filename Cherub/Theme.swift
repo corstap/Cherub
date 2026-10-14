@@ -18,6 +18,8 @@ extension Color {
     static let cherubLavender = Color(cherubHex: 0xBDB4C2)
     static let cherubOlive = Color(cherubHex: 0xB5B054)
     static let cherubPeriwinkle = Color(cherubHex: 0x8096E8)
+    static let cherubAmber = Color(cherubHex: 0xF4A744)
+    static let cherubViolet = Color(cherubHex: 0x7B60AB)
     static let cherubRose = cherubLavender
     static let cherubBlush = cherubLavender
     static let cherubSage = cherubPeriwinkle
