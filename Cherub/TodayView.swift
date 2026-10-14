@@ -87,7 +87,7 @@ struct TodayView: View {
                 MetricTile(title: "Energy", icon: "sun.max", value: log.energy, tint: .cherubGold)
                 MetricTile(title: "Mood", icon: "face.smiling", value: log.mood, tint: .cherubRose)
                 MetricTile(title: "Sleep", icon: "moon.zzz", value: log.sleep, tint: .cherubSage)
-                MetricTile(title: "Aches & cramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
+                MetricTile(title: "Aches & Cramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
             }
             HStack {
                 Text("Flow")

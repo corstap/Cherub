@@ -48,7 +48,7 @@ struct LogView: View {
                                 .accessibilityValue(draft.flow == flow ? "Selected" : "Not selected")
                             }
                         }
-                        ratingRow("Aches & cramps", icon: "heart", value: $draft.symptoms, tint: .cherubBurgundy)
+                        ratingRow("Aches & Cramps", icon: "heart", value: $draft.symptoms, tint: .cherubBurgundy)
                     }
                     .cherubCard()
 
