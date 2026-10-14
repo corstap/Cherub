@@ -9,122 +9,214 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    CherubHeader(subtitle: store.selectedDate.formatted(date: .complete, time: .omitted), showSettings: true)
-                    SharedDateNavigator()
-
-                    VStack(spacing: 14) {
-                        HStack(spacing: 18) {
-                            MoonGlyph(snapshot: moon, size: 102)
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(moon.phaseName)
-                                    .font(.system(size: 27, weight: .bold, design: .serif))
-                                Button { showMoonInfo = true } label: {
-                                    HStack(spacing: 5) {
-                                        Text("Moon in \(moon.zodiacSign)")
-                                        Image(systemName: "info.circle")
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.cherubSage)
-                                }
-                                Text("Cycle Day \(store.cycleDay()) · \(store.phase().rawValue)")
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer(minLength: 0)
-                        }
-
-                        CycleWheelView(size: 230)
-
-                        HStack(spacing: 12) {
-                            ForEach(CyclePhase.allCases, id: \.self) { phase in
-                                HStack(spacing: 5) {
-                                    Circle().fill(phase.color).frame(width: 8, height: 8)
-                                    Text(phase.rawValue)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-
+                VStack(spacing: 12) {
+                    CherubHeader(subtitle: nil, showSettings: true)
+                    SharedDateNavigator(isCompact: true)
+                        .padding(.top, -10)
+                    lunarHeader
+                    illustratedCycle
+                    phaseLegend
                     insightCard
                     quickLog
-                    patternsPreview
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 12)
-                .padding(.bottom, 30)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
             }
             .background(Color.cherubBackground.ignoresSafeArea())
             .sheet(isPresented: $showMoonInfo) { MoonInfoSheet(snapshot: moon) }
             .toolbar(.hidden, for: .navigationBar)
+            .toolbarBackground(Color.cherubBackground, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+        }
+    }
+
+    private var lunarHeader: some View {
+        VStack(spacing: 4) {
+            GeometryReader { proxy in
+                ZStack {
+                    lunarDecoration
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                    Image("CherubDecoration")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: proxy.size.width * 0.29, height: 122)
+                        .rotationEffect(.degrees(-10))
+                        .position(x: proxy.size.width * 0.12, y: 58)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                    Button { showMoonInfo = true } label: {
+                        MoonGlyph(snapshot: moon, size: 96)
+                    }
+                    .buttonStyle(.plain)
+                    .position(x: proxy.size.width / 2, y: 52)
+                    .accessibilityHint("Open moon details")
+                }
+            }
+            .frame(height: 112)
+
+            Text(moon.phaseName)
+                .font(.custom("Baskerville", size: 25, relativeTo: .title2))
+                .foregroundStyle(Color.cherubInk)
+            Button { showMoonInfo = true } label: {
+                HStack(spacing: 5) {
+                    Text("Moon in \(moon.zodiacSign)")
+                    Text(zodiacGlyph)
+                }
+                .font(.system(size: 13))
+                .foregroundStyle(Color.cherubInk)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Open moon and zodiac details")
+            Text("Cycle Day \(store.cycleDay()) · \(store.phase().rawValue) Phase")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var zodiacGlyph: String {
+        let symbols = ["Aries": "♈︎", "Taurus": "♉︎", "Gemini": "♊︎", "Cancer": "♋︎",
+                       "Leo": "♌︎", "Virgo": "♍︎", "Libra": "♎︎", "Scorpio": "♏︎",
+                       "Sagittarius": "♐︎", "Capricorn": "♑︎", "Aquarius": "♒︎", "Pisces": "♓︎"]
+        return symbols[moon.zodiacSign] ?? ""
+    }
+
+    private var lunarDecoration: some View {
+        GeometryReader { proxy in
+            ZStack {
+                ForEach(0..<3, id: \.self) { orbit in
+                    Ellipse()
+                        .trim(from: 0.02, to: 0.4)
+                        .stroke(Color.cherubGold.opacity(0.24), lineWidth: 0.6)
+                        .frame(width: 88 + CGFloat(orbit) * 8, height: 150 + CGFloat(orbit) * 8)
+                        .rotationEffect(.degrees(-25))
+                        .position(x: proxy.size.width * 0.87, y: 84)
+                }
+                AntiqueStarburst()
+                    .fill(Color.cherubGold.opacity(0.8))
+                    .frame(width: 62, height: 62)
+                    .position(x: proxy.size.width * 0.86, y: 35)
+                TinyStar()
+                    .position(x: proxy.size.width * 0.07, y: 0)
+                TinyStar()
+                    .position(x: proxy.size.width * 0.82, y: 108)
+            }
+        }
+    }
+
+    private var illustratedCycle: some View {
+        ZStack {
+            HStack {
+                VStack {
+                    TinyStar()
+                    Spacer()
+                    AntiqueStarburst().fill(Color.cherubGold.opacity(0.65)).frame(width: 18, height: 18)
+                    Spacer()
+                    TinyStar()
+                }
+                Spacer()
+                VStack {
+                    TinyStar()
+                    Spacer()
+                    TinyStar()
+                    Spacer()
+                    AntiqueStarburst().fill(Color.cherubGold.opacity(0.65)).frame(width: 14, height: 14)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 34)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            CycleWheelView(size: 224, showsArtwork: true)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 232)
+    }
+
+    private var phaseLegend: some View {
+        HStack(spacing: 12) {
+            ForEach(CyclePhase.allCases, id: \.self) { phase in
+                HStack(spacing: 4) {
+                    Circle().fill(phase.color).frame(width: 7, height: 7)
+                    Text(phase.rawValue)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 
     private var insightCard: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Image(systemName: store.phase().symbol)
-                .font(.system(size: 22))
-                .foregroundStyle(Color.cherubGold)
-                .frame(width: 34)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(store.isShowingToday ? "Today’s Insight" : "Daily Insight")
-                    .font(.system(size: 21, weight: .bold, design: .serif))
-                    .foregroundStyle(Color.cherubBurgundy)
-                Text("You’re in your \(store.phase().rawValue.lowercased()) phase while the moon is \(moon.phaseName.lowercased()). Log how you feel today and Cherub will look for your own patterns over time.")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.cherubInk.opacity(0.78))
+        NavigationLink {
+            PatternsView()
+        } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "sun.max")
+                    .font(.system(size: 23, weight: .light))
+                    .foregroundStyle(Color.cherubGold)
+                    .frame(width: 28)
+                    .padding(.top, 2)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(store.isShowingToday ? "Today’s Insight" : "Daily Insight")
+                        .font(.custom("Baskerville", size: 19, relativeTo: .headline))
+                        .foregroundStyle(Color.cherubInk)
+                    Text(store.insights().first?.detail ?? "Log how you feel to explore your own cycle and lunar patterns.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.cherubInk.opacity(0.75))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .light))
+                    .foregroundStyle(Color.cherubGold)
+                    .padding(.top, 14)
             }
+            .cherubCard()
         }
-        .cherubCard()
+        .buttonStyle(.plain)
     }
 
     private var quickLog: some View {
         let log = store.log()
         let hasLog = log.energy + log.mood + log.sleep + log.creativity + log.stress + log.symptoms > 0 || log.flow != nil || !log.notes.isEmpty
         let editTitle = store.isShowingToday ? "Edit today’s log" : "Edit this day’s log"
-        return VStack(alignment: .leading, spacing: 14) {
-            SectionTitle(text: store.isShowingToday ? "Today’s Log" : "Daily Log")
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(store.isShowingToday ? "Log today" : "Log this day")
+                .font(.custom("Baskerville", size: 19, relativeTo: .headline))
+                .foregroundStyle(Color.cherubInk)
             HStack(spacing: 6) {
-                MetricTile(title: "Energy", icon: "sun.max", value: log.energy, tint: .cherubGold)
-                MetricTile(title: "Mood", icon: "face.smiling", value: log.mood, tint: .cherubRose)
-                MetricTile(title: "Sleep", icon: "moon.zzz", value: log.sleep, tint: .cherubSage)
-                MetricTile(title: "Aches & Cramps", icon: "heart", value: log.symptoms, tint: .cherubBurgundy)
+                quickMetric("Energy", icon: "sun.max", value: log.energy)
+                quickMetric("Mood", icon: "face.smiling", value: log.mood)
+                quickMetric("Sleep", icon: "moon", value: log.sleep)
+                quickMetric("Creativity", icon: "sparkles", value: log.creativity)
+                quickMetric("Aches &\nCramps", icon: "heart", value: log.symptoms)
             }
             HStack {
                 Text("Flow")
                 Spacer()
                 Text(log.flow?.title ?? "Not logged")
             }
-            .font(.subheadline)
+            .font(.system(size: 12))
             .foregroundStyle(.secondary)
             NavigationLink {
                 LogView()
             } label: {
                 Text(hasLog ? editTitle : "Log how you feel")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.cherubBurgundy)
             }
         }
-        .cherubCard()
     }
 
-    private var patternsPreview: some View {
-        let first = store.insights().first!
-        return VStack(alignment: .leading, spacing: 10) {
-            SectionTitle(text: "Your Patterns")
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: first.icon)
-                    .foregroundStyle(Color.cherubBurgundy)
-                    .font(.system(size: 20))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(first.title).font(.headline)
-                    Text(first.detail).font(.subheadline).foregroundStyle(.secondary)
-                }
-            }
+    private func quickMetric(_ title: String, icon: String, value: Int) -> some View {
+        NavigationLink {
+            LogView()
+        } label: {
+            MetricTile(title: title, icon: icon, value: value, tint: .cherubGold)
         }
-        .cherubCard()
+        .buttonStyle(.plain)
+        .accessibilityLabel("Log \(title.replacingOccurrences(of: "\n", with: " "))")
     }
 }
 

@@ -9,12 +9,12 @@ struct CherubHeader: View {
         ZStack {
             VStack(spacing: 2) {
                 Text("Cherub")
-                    .font(.system(size: 38, weight: .black, design: .serif))
-                    .foregroundStyle(Color.cherubBurgundy)
+                    .font(.custom("Baskerville", size: 36, relativeTo: .largeTitle))
+                    .foregroundStyle(Color.cherubInk)
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.cherubInk.opacity(0.8))
                 }
             }
             .frame(maxWidth: .infinity)
@@ -37,8 +37,45 @@ struct CherubHeader: View {
 
 struct SharedDateNavigator: View {
     @EnvironmentObject private var store: CherubStore
+    var isCompact = false
+    @State private var showingCalendar = false
 
     var body: some View {
+        Group {
+            if isCompact {
+                navigationControls
+            } else {
+                navigationControls.cherubCard()
+            }
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.cherubBurgundy)
+        .tint(.cherubBurgundy)
+        .sheet(isPresented: $showingCalendar) {
+            NavigationStack {
+                DatePicker("Selected date", selection: $store.selectedDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .padding()
+                    .tint(.cherubBurgundy)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingCalendar = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var compactDateLabel: String {
+        if Calendar.current.isDate(store.selectedDate, equalTo: Date(), toGranularity: .year) {
+            return store.selectedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+        }
+        return store.selectedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day().year())
+    }
+
+    private var navigationControls: some View {
         VStack(spacing: 4) {
             HStack(spacing: 8) {
                 Button { store.moveSelectedDate(by: -1) } label: {
@@ -48,9 +85,20 @@ struct SharedDateNavigator: View {
                 .accessibilityLabel("Previous day")
 
                 Spacer(minLength: 0)
-                DatePicker("Selected date", selection: $store.selectedDate, displayedComponents: .date)
-                    .labelsHidden()
-                    .datePickerStyle(.compact)
+                if isCompact {
+                    Button { showingCalendar = true } label: {
+                        Text(compactDateLabel)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.cherubInk)
+                            .frame(minHeight: 44)
+                    }
+                    .accessibilityLabel("Selected date: \(store.selectedDate.formatted(date: .complete, time: .omitted))")
+                    .accessibilityHint("Open calendar")
+                } else {
+                    DatePicker("Selected date", selection: $store.selectedDate, displayedComponents: .date)
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                }
                 Spacer(minLength: 0)
 
                 Button { store.moveSelectedDate(by: 1) } label: {
@@ -66,10 +114,6 @@ struct SharedDateNavigator: View {
                     .padding(.vertical, 6)
             }
         }
-        .buttonStyle(.plain)
-        .foregroundStyle(Color.cherubBurgundy)
-        .tint(.cherubBurgundy)
-        .cherubCard()
     }
 }
 
@@ -167,12 +211,18 @@ struct MetricTile: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                Circle().fill(tint.opacity(0.13)).frame(width: 46, height: 46)
-                Image(systemName: icon).foregroundStyle(tint).font(.system(size: 20, weight: .medium))
+                Circle()
+                    .fill(tint.opacity(0.08))
+                    .overlay(Circle().stroke(tint.opacity(0.22), lineWidth: 0.7))
+                    .frame(width: 44, height: 44)
+                Image(systemName: icon).foregroundStyle(tint).font(.system(size: 20, weight: .light))
             }
             Text(title)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(Color.cherubInk)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(minHeight: 24, alignment: .top)
             if value > 0 {
                 Text("\(value)/5")
                     .font(.caption2.weight(.semibold))

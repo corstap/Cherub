@@ -1,8 +1,8 @@
 import SwiftUI
 
 extension Color {
-    static let cherubBackground = Color(red: 0.965, green: 0.961, blue: 0.946)
-    static let cherubPaper = Color(red: 0.985, green: 0.982, blue: 0.971)
+    static let cherubBackground = Color(red: 0.978, green: 0.972, blue: 0.960)
+    static let cherubPaper = Color(red: 0.992, green: 0.985, blue: 0.973)
     static let cherubInk = Color(red: 0.105, green: 0.090, blue: 0.095)
     static let cherubBurgundy = Color(red: 0.49, green: 0.035, blue: 0.13)
     static let cherubRose = Color(red: 0.77, green: 0.52, blue: 0.55)
@@ -15,13 +15,13 @@ extension Color {
 struct CherubCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .padding(16)
+            .padding(14)
             .background(Color.cherubPaper)
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color.cherubLine, lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
@@ -34,5 +34,30 @@ struct TinyStar: View {
         Image(systemName: "sparkle")
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(Color.cherubGold)
+    }
+}
+
+struct AntiqueStarburst: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius = min(rect.width, rect.height) / 2
+        var path = Path()
+        for point in 0..<64 {
+            let angle = Double(point) * .pi / 32 - .pi / 2
+            let length: CGFloat
+            if point.isMultiple(of: 8) {
+                length = radius
+            } else if point.isMultiple(of: 2) {
+                length = radius * 0.56
+            } else {
+                length = radius * 0.035
+            }
+            let position = CGPoint(
+                x: rect.midX + CGFloat(cos(angle)) * length,
+                y: rect.midY + CGFloat(sin(angle)) * length
+            )
+            if point == 0 { path.move(to: position) } else { path.addLine(to: position) }
+        }
+        path.closeSubpath()
+        return path
     }
 }
