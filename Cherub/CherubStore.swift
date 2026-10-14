@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 final class CherubStore: ObservableObject {
     @Published var profile: CycleProfile { didSet { saveProfile() } }
